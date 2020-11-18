@@ -319,19 +319,18 @@ RUN set -Eeuxo pipefail \
 # Pre-installed on Amazon Linux: 1.12.14
 # Recommended by: Poppler
 #
-ENV CAIRO_VERSION=1.17.2
+ENV CAIRO_VERSION=1.16.0
 ENV CAIRO_BUILD_DIR=${BUILD_DIR}/cairo
 
 RUN set -Eeuxo pipefail \
     && mkdir -p ${CAIRO_BUILD_DIR} \
-    && curl -L https://cairographics.org/snapshots/cairo-${CAIRO_VERSION}.tar.xz \
-    | tar xJC ${CAIRO_BUILD_DIR} --strip-components=1
+    && curl -L https://gitlab.freedesktop.org/cairo/cairo/-/archive/${CAIRO_VERSION}/cairo-${CAIRO_VERSION}.tar.bz2 \
+    | tar xjC ${CAIRO_BUILD_DIR} --strip-components=1
 
 WORKDIR ${CAIRO_BUILD_DIR}/
 
 RUN set -Eeuxo pipefail \
-    && autoreconf -fiv \
-    && ./configure \
+    && ./autogen.sh \
     --prefix=${INSTALL_DIR} \
     --disable-static \
     --enable-tee \
@@ -448,4 +447,6 @@ RUN set -Eeuxo pipefail \
     && curl -Ls https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf --output sample.pdf \
     && /opt/bin/pdftoppm -png sample.pdf sample \
     && test -f sample-1.png \
+    && /opt/bin/pdftocairo -pdf sample.pdf test.pdf \
+    && test -f test.pdf \
     && rm *.pdf *.png
